@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<robot name="quickbot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+	<xacro:property name="PI" value="3.1415926535897931" />
+<xacro:property name="wheel_base" value="0.262" />
+<xacro:property name="wheel_track" value="0.37550"/>
+<xacro:property name="wheel_vertical_offset" value="0.0345" />
+<xacro:property name="chassis_offset" value="-0.0655" />
+
+  <xacro:property name="wheel_radius" value="0.098" /> 
+  <xacro:property name="wheel_width" value="0.040" /> 
+
+  <xacro:property name="chassis_length" value="0.420" />
+  <xacro:property name="chassis_width" value="0.310" /> 
+  <xacro:property name="chassis_height" value="0.184" /> 
+
+  <xacro:property name="hinge_spacing" value="0.050" />
+ <xacro:property name="camera_height" value="0.20" /> 
+
+<material name="black"><color rgba="0 0 0 1.0" /></material>
+<material name="red"><color rgba="1 0 0 1.0"/></material>
+
+<xacro:macro name="wheel" params="prefix *joint_pose">
+
+<link name="wheel_${prefix}">
+<visual>
+<origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+<geometry>
+ <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+</geometry>
+<material name="black" />
+</visual>
+
+<collision>
+ <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+</collision>
+
+      <inertial>
+        <origin xyz="-0.0001 0 -0.00001" rpy="0 0 0"/>
+        <mass value="0.017"/>
+        <inertia
+          ixx="0.0024" ixy="0" ixz="0"
+          iyy="0.0013" iyz="0"
+          izz="0.0013"/>
+      </inertial>
+</link>
+
+   <joint name="wheel_hinge_${prefix}" type="continuous">
+      <parent link="chassis_link"/>
+      <child link="wheel_${prefix}" />
+      <xacro:insert_block name="joint_pose" />
+      <axis xyz="0 1 0" />
+    </joint>
+
+    <transmission name="${prefix}_wheel_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}_wheel">
+        <hardwareInterface>VelocityJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}_actuator">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+</xacro:macro>
+
+<xacro:wheel prefix="right">
+<origin xyz="${wheel_base/2} ${wheel_track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+</xacro:wheel>
+
+<xacro:wheel prefix="left">
+<origin xyz="${wheel_base/2} ${-wheel_track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+</xacro:wheel>
+
+  <link name="chassis_link">
+    <visual>
+      <origin xyz="0.3 0 ${hinge_spacing+.1}" rpy="${PI/2} 0 ${PI/2}"/>
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+      <material name="red" />
+    </visual>
+    <collision>
+      <origin xyz="0.3 0 ${hinge_spacing+.1}" rpy="${PI/2} 0 ${PI/2}"/>
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <!-- Center of mass -->
+      <origin xyz="0.012  0.002 0.067" rpy="0 0 0"/>
+      <mass value="0.1523"/> 
+      <!-- Moments of inertia: ( chassis without wheels ) -->
+      <inertia
+        ixx="0.03136" ixy="-0.0008" ixz="0.00164"
+        iyy="0.003922" iyz="-0.0009"
+        izz="0.004485"/>
+      </inertial>
+  </link>
+<link name="camera_base">
+<visual>
+	<origin xyz="0.5 0 ${hinge_spacing+.1}" rpy="${PI/2} 0 ${PI/2}"/>
+<geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height/2}"/>
+      </geometry>
+<material name="red" />
+</visual>
+ <collision>
+      <origin xyz="0.5 0 ${hinge_spacing+.1}" rpy="${PI/2} 0 ${PI/2}"/>
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height/2}"/>
+      </geometry>
+    </collision>
+</link>
+<joint name="chasiss_camera" type="fixed">
+<parent link="chassis_link"/>
+<child link="camera_base"/>
+<origin xyz="0 0 ${camera_height+.1}"/>
+</joint>
+
+</robot>
